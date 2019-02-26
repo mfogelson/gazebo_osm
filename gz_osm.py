@@ -195,8 +195,8 @@ osmRoads = Osm2Dict(args.boundingbox[0], args.boundingbox[1],
 
 print ('| Extracting the map data for gazebo ...')
 #get Road and model details
-#roadPointWidthMap, modelPoseMap, buildingLocationMap = osmRoads.getMapDetails()
-roadPointWidthMap = osmRoads.getRoadDetails()
+roadPointWidthMap, modelPoseMap, buildingLocationMap = osmRoads.getMapDetails()
+# roadPointWidthMap = osmRoads.getRoadDetails()
 print ('| Building sdf file ...')
 #Initialize the getSdf class
 sdfFile = GetSDF()
@@ -204,6 +204,9 @@ sdfFile = GetSDF()
 
 #Set up the spherical coordinates
 sdfFile.addSphericalCoords(osmRoads.getLat(), osmRoads.getLon())
+
+sdfFile.addPhysics('default_physics', 0, 'ode', 0.001, 1, 1000)
+sdfFile.addGround()
 
 #add Required models
 sdfFile.includeModel("sun")
@@ -213,11 +216,11 @@ sdfFile.includeModel("sun")
 #                      model,
 #                      [points[0, 0], points[1, 0], points[2, 0]])
 
-# for building in buildingLocationMap.keys():
-#     sdfFile.addBuilding(buildingLocationMap[building]['mean'],
-#                         buildingLocationMap[building]['points'],
-#                         building,
-#                         buildingLocationMap[building]['color'])
+for building in buildingLocationMap.keys():
+    sdfFile.addBuilding(buildingLocationMap[building]['mean'],
+                        buildingLocationMap[building]['points'],
+                        building,
+                        buildingLocationMap[building]['color'])
 print ('|')
 print ('|-----------------------------------')
 print ('| Number of Roads: ' + str(len(roadPointWidthMap.keys())))

@@ -22,6 +22,60 @@ class GetSDF:
         world.set('name', 'default')
         self.modelList = dict()
 
+    def addPhysics(self, name, default, physics_type, step_size, real_time_factor, update_rate):
+        physics_sdf = Et.SubElement(self.sdf.find('world'), 'physics')
+
+        physics_sdf.set('name', name)
+        physics_sdf.set('default', str(default))
+        physics_sdf.set('type', physics_type)
+
+        physics_step_size = Et.SubElement(physics_sdf, 'max_step_size')
+        physics_step_size.text = str(step_size)
+
+        physics_rtf = Et.SubElement(physics_sdf, 'real_time_factor')
+        physics_rtf.text = str(real_time_factor)
+
+        phyiscs_update = Et.SubElement(physics_sdf, 'real_time_update_rate')
+        phyiscs_update.text = str(update_rate)
+
+    def addGround(self):
+        ground_plane = Et.SubElement(self.sdf.find('world'), 'model')
+        ground_plane.set('name', 'ground_plane')
+        
+        static = Et.SubElement(ground_plane, 'static')
+        static.text = '1'
+
+        link = Et.SubElement(ground_plane, 'link')
+        link.set('name', 'link')
+
+        collision = Et.SubElement(link, 'collision')
+        collision.set('name', 'collision')
+        geometry = Et.SubElement(collision, 'geometry')
+        plane = Et.SubElement(geometry, 'plane')
+        normal = Et.SubElement(plane, 'normal')
+        normal.text='0 0 1'
+        size = Et.SubElement(plane, 'size')
+        size.text = '500 500'
+
+        visual = Et.SubElement(link, 'visual')
+        visual.set('name', 'visual')
+        geometry_v = Et.SubElement(visual, 'geometry')
+        plane_v = Et.SubElement(geometry_v, 'plane')
+        normal_v = Et.SubElement(plane_v, 'normal')
+        normal_v.text='0 0 1'
+        size_v = Et.SubElement(plane_v, 'size')
+        size_v.text = '500 500'
+
+        material = Et.SubElement(visual, 'material')
+        script = Et.SubElement(material, 'script')
+        uri = Et.SubElement(script, 'uri')
+        uri.text = 'file://media/materials/scripts/gazebo.material'
+        name = Et.SubElement(script, 'name')
+        name.text = 'Gazebo/Grey'
+
+        Et.SubElement(link, 'gravity').text = '1'
+        
+
     def addSphericalCoords(self, latVal, lonVal,
                            elevationVal=0.0, headingVal=0):
         ''' Add the spherical coordinates for the map'''
@@ -116,7 +170,7 @@ class GetSDF:
         mainPose = Et.SubElement(building, 'pose')
         mainPose.text = (str(mean[0, 0]) +
                          " " + str(mean[1, 0]) +
-                         " " + str(mean[2, 0]) +
+                         " " + str(mean[2, 0]+5) +
                          " 0 0 0")
 
         yaw = [numpy.arctan2((pointList[1, point] - pointList[1, point + 1]),
@@ -136,22 +190,22 @@ class GetSDF:
                      for point in range(numpy.size(pointList, 1)-1)]
 
         for point in range(len(yaw)):
-
+            name = building_name + '_' + str(point)
             link = Et.SubElement(building, 'link')
-            link.set('name', (building_name + '_' + str(point)))
+            link.set('name', (name))
             collision = Et.SubElement(link, 'collision')
-            collision.set('name', (building_name + '_' + str(point)))
+            collision.set('name', (name+'_collision'))
 
             geometry = Et.SubElement(collision, 'geometry')
             box = Et.SubElement(geometry, 'box')
-            Et.SubElement(box, 'size').text = str(distance[point]) + ' 0.2 0'
+            Et.SubElement(box, 'size').text = str(distance[point]) + ' 0.2 10'
 
             visual = Et.SubElement(link, 'visual')
-            visual.set('name', (building_name + '_' + str(point)))
+            visual.set('name', (name+'_visual'))
 
             geometry = Et.SubElement(visual, 'geometry')
             box = Et.SubElement(geometry, 'box')
-            Et.SubElement(box, 'size').text = str(distance[point]) + ' 0.2 0'
+            Et.SubElement(box, 'size').text = str(distance[point]) + ' 0.2 10'
 
             material = Et.SubElement(visual, 'material')
             script = Et.SubElement(material, 'script')
